@@ -1,0 +1,34 @@
+name: wf-cd-prodction
+on: 
+  push: 
+   branches: 
+     - production
+jobs: 
+   build-job-production:
+     runs-on: ubuntu-latest
+     steps:
+       - name: checkout Repo 
+         uses: actions/checkout@v4
+         with:
+          ref: "${{github.ref}}"
+       - name: Build Artifacts with Parcel 
+         run: npx parcel build "./src/index.html" --dist-dir "./dist" --public-url "./" 
+       - name:  Upload Build Artifacts 
+         uses:  action/upload-pages-artifact@v3
+         with:
+           path: "./dist"
+           name: "build-artifact-production"
+   deploy-job-production:
+       needs: "upload-jobs-production"
+       runs-on: ubuntu-latest
+       permission:
+         pages: write
+         id-token: write
+       enviroment: 
+          name: "production-env"
+       steps:
+        - name: Deploy build artifacts on gh
+          uses: action/deploy-pages@v4
+          with:
+             artifacts_name: "build-artifact-production" 
+             token: "${{github.token}}"
